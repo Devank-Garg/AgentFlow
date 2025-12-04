@@ -32,6 +32,13 @@
             <div class="config-header">System Configuration</div>
 
             <div class="control-group">
+                <label class="control-label">AGENT IDENTITY</label>
+                <input type="text" class="text-input" id="agentNameInput" placeholder="Agent Name">
+                <input type="text" class="text-input" id="agentVersionInput" placeholder="Version (e.g. 1.0.0)"
+                    value="1.0.0" style="margin-top: 0.5rem;">
+            </div>
+
+            <div class="control-group">
                 <label class="control-label">NEURAL ENGINE</label>
                 <select class="model-select" id="modelSelect">
                     <option value="gpt4o">GPT-4o (Omni)</option>
@@ -54,15 +61,15 @@
                     <div class="toggle-indicator"></div>
                 </div>
 
-                <div class="toggle-switch" data-tool="file_access">
+                <div class="toggle-switch" data-tool="file_access" style="margin-top: 0.5rem;">
                     <span>File Access</span>
                     <div class="toggle-indicator"></div>
                 </div>
             </div>
 
-            <div class="control-group" style="flex: 1; min-height: 0;">
-                <label class="control-label">LIVE CONFIGURATION</label>
-                <pre class="json-preview" id="configJson"></pre>
+            <div class="control-group" style="flex: 1; min-height: 200px; display: flex; flex-direction: column;">
+                <label class="control-label">LIVE CONFIGURATION (EDITABLE)</label>
+                <textarea class="json-editor" id="configJsonEditor" spellcheck="false"></textarea>
             </div>
         </div>
 

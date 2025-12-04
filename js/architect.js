@@ -6,9 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const agentPrompt = document.getElementById('agentPrompt');
 
     // Config Elements
+    const agentNameInput = document.getElementById('agentNameInput');
+    const agentVersionInput = document.getElementById('agentVersionInput');
     const modelSelect = document.getElementById('modelSelect');
     const systemPromptInput = document.getElementById('systemPromptInput');
-    const configJson = document.getElementById('configJson');
+    const configJsonEditor = document.getElementById('configJsonEditor'); // Changed from configJson
     const toggleSwitches = document.querySelectorAll('.toggle-switch');
 
     // Detailed Modification Elements
@@ -19,21 +21,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const tokensValue = document.getElementById('tokensValue');
     const knowledgeDropzone = document.getElementById('knowledgeDropzone');
 
-    // State
-    const agentState = {
-        description: "",
-        model: "gpt4o",
-        systemPrompt: "",
-        tools: {
-            web_search: true,
-            file_access: false,
+    // Generate UUID v4
+    function uuidv4() {
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+            (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+        );
+    }
 
+    // Backend-Ready State Structure (Initial)
+    let agentState = {
+        agent_id: uuidv4(),
+        meta: {
+            name: "New_Agent",
+            version: "1.0.0",
+            created_at: new Date().toISOString()
         },
-        detailedConfig: {
-            coreInstructions: "",
-            temperature: 0.7,
-            maxTokens: 2048,
-            knowledgeBase: []
+        // 1. THE BRAIN
+        neural_config: {
+            model_provider: "openai",
+            model_id: "gpt-4-turbo",
+            system_prompt: "",
+            parameters: {
+                temperature: 0.7,
+                max_tokens: 2048,
+                top_p: 1.0,
+                frequency_penalty: 0.0
+            }
+        },
+        // 2. SKILL RACK
+        skills: [
+            {
+                id: "web_search",
+                enabled: true,
+                config: { depth: "basic" }
+            },
+            {
+                id: "file_access",
+                enabled: false
+            }
+        ],
+        // 3. KNOWLEDGE CRATE
+        knowledge_base: {
+            vector_store_id: null,
+            files: []
         }
     };
 
@@ -42,65 +72,195 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
     });
 
-    // Sync JSON
-    function updateJSON() {
-        configJson.textContent = JSON.stringify(agentState, null, 2);
+    // --- Two-Way Binding Logic ---
+
+    // 1. Update JSON Editor from State
+    function updateJSONEditor() {
+        const jsonString = JSON.stringify(agentState, null, 2);
+        // Only update if different to avoid cursor jumping if we were typing in it (though we usually update on blur or valid parse)
+        // But here we update it when UI controls change.
+        if (configJsonEditor.value !== jsonString) {
+            configJsonEditor.value = jsonString;
+        }
     }
 
-    // Initialize JSON
-    updateJSON();
+    // 2. Update UI from State
+    function updateUI() {
+        // Meta
+        if (agentState.meta) {
+            if (agentState.meta.name) agentNameInput.value = agentState.meta.name;
+            if (agentState.meta.version) agentVersionInput.value = agentState.meta.version;
+        }
 
-    // Event Listeners for Config
+        // Neural Config
+        if (agentState.neural_config) {
+            // Model (Simple mapping reverse)
+            const modelId = agentState.neural_config.model_id;
+            if (modelId) {
+                if (modelId.includes('gpt')) modelSelect.value = 'gpt4o';
+                else if (modelId.includes('claude')) modelSelect.value = 'claude35';
+                else if (modelId.includes('llama')) modelSelect.value = 'llama3';
+            }
+
+            // System Prompt
+            if (agentState.neural_config.system_prompt !== undefined) {
+                systemPromptInput.value = agentState.neural_config.system_prompt;
+                logicInput.value = agentState.neural_config.system_prompt;
+            }
+
+            // Parameters
+            if (agentState.neural_config.parameters) {
+                if (agentState.neural_config.parameters.temperature !== undefined) {
+                    tempSlider.value = agentState.neural_config.parameters.temperature;
+                    tempValue.textContent = agentState.neural_config.parameters.temperature;
+                }
+                if (agentState.neural_config.parameters.max_tokens !== undefined) {
+                    tokensSlider.value = agentState.neural_config.parameters.max_tokens;
+                    tokensValue.textContent = agentState.neural_config.parameters.max_tokens;
+                }
+            }
+        }
+
+        // Skills
+        if (agentState.skills) {
+            toggleSwitches.forEach(toggle => {
+                const toolKey = toggle.dataset.tool;
+                const skill = agentState.skills.find(s => s.id === toolKey);
+                if (skill && skill.enabled) {
+                    toggle.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                }
+            });
+        }
+
+        // Knowledge Base (Visual feedback only, as we can't repopulate file inputs)
+        // We could list files if we had a list UI, but currently it's just a dropzone.
+    }
+
+    // 3. Handle JSON Editor Input
+    configJsonEditor.addEventListener('input', () => {
+        try {
+            const newState = JSON.parse(configJsonEditor.value);
+            agentState = newState; // Update internal state
+            updateUI(); // Sync UI controls to match new JSON
+            configJsonEditor.classList.remove('error');
+        } catch (e) {
+            // Invalid JSON
+            configJsonEditor.classList.add('error');
+            // Do not update state or UI until valid
+        }
+    });
+
+    // Initialize
+    updateJSONEditor();
+    updateUI();
+
+    // --- UI Event Listeners (Update State -> Update JSON) ---
+
+    // Identity
+    agentNameInput.addEventListener('input', (e) => {
+        if (!agentState.meta) agentState.meta = {};
+        agentState.meta.name = e.target.value;
+        updateJSONEditor();
+    });
+
+    agentVersionInput.addEventListener('input', (e) => {
+        if (!agentState.meta) agentState.meta = {};
+        agentState.meta.version = e.target.value;
+        updateJSONEditor();
+    });
+
+    // Model Selection
     modelSelect.addEventListener('change', (e) => {
-        agentState.model = e.target.value;
-        updateJSON();
+        const val = e.target.value;
+        if (!agentState.neural_config) agentState.neural_config = {};
+
+        if (val.includes('gpt')) {
+            agentState.neural_config.model_provider = 'openai';
+            agentState.neural_config.model_id = 'gpt-4-turbo';
+        } else if (val.includes('claude')) {
+            agentState.neural_config.model_provider = 'anthropic';
+            agentState.neural_config.model_id = 'claude-3-5-sonnet';
+        } else if (val.includes('llama')) {
+            agentState.neural_config.model_provider = 'meta';
+            agentState.neural_config.model_id = 'llama-3-70b';
+        }
+        updateJSONEditor();
     });
 
-    systemPromptInput.addEventListener('input', (e) => {
-        agentState.systemPrompt = e.target.value;
-        updateJSON();
-    });
+    // System Prompt & Logic Sync
+    function updateSystemPrompt(val) {
+        if (!agentState.neural_config) agentState.neural_config = {};
+        agentState.neural_config.system_prompt = val;
+        // Sync the other input
+        if (systemPromptInput.value !== val) systemPromptInput.value = val;
+        if (logicInput.value !== val) logicInput.value = val;
+        updateJSONEditor();
+    }
 
+    logicInput.addEventListener('input', (e) => updateSystemPrompt(e.target.value));
+    systemPromptInput.addEventListener('input', (e) => updateSystemPrompt(e.target.value));
+
+
+    // Toggle Switches (Skills)
     toggleSwitches.forEach(toggle => {
         toggle.addEventListener('click', () => {
             toggle.classList.toggle('active');
             const toolKey = toggle.dataset.tool;
-            if (toolKey) {
-                agentState.tools[toolKey] = toggle.classList.contains('active');
-                updateJSON();
+            const isEnabled = toggle.classList.contains('active');
+
+            if (!agentState.skills) agentState.skills = [];
+
+            const skill = agentState.skills.find(s => s.id === toolKey);
+            if (skill) {
+                skill.enabled = isEnabled;
+            } else {
+                agentState.skills.push({
+                    id: toolKey,
+                    enabled: isEnabled
+                });
             }
+            updateJSONEditor();
         });
     });
 
-    // Event Listeners for Detailed Modification
-    logicInput.addEventListener('input', (e) => {
-        agentState.detailedConfig.coreInstructions = e.target.value;
-        updateJSON();
-    });
-
+    // Temperature
     tempSlider.addEventListener('input', (e) => {
-        const val = e.target.value;
+        const val = parseFloat(e.target.value);
         tempValue.textContent = val;
-        agentState.detailedConfig.temperature = parseFloat(val);
-        updateJSON();
+        if (!agentState.neural_config) agentState.neural_config = { parameters: {} };
+        if (!agentState.neural_config.parameters) agentState.neural_config.parameters = {};
+
+        agentState.neural_config.parameters.temperature = val;
+        updateJSONEditor();
     });
 
+    // Max Tokens
     tokensSlider.addEventListener('input', (e) => {
-        const val = e.target.value;
+        const val = parseInt(e.target.value);
         tokensValue.textContent = val;
-        agentState.detailedConfig.maxTokens = parseInt(val);
-        updateJSON();
+        if (!agentState.neural_config) agentState.neural_config = { parameters: {} };
+        if (!agentState.neural_config.parameters) agentState.neural_config.parameters = {};
+
+        agentState.neural_config.parameters.max_tokens = val;
+        updateJSONEditor();
     });
 
-    // Mock Knowledge Upload
+    // Knowledge Base
     knowledgeDropzone.addEventListener('click', () => {
         const fileName = `doc_${Math.floor(Math.random() * 1000)}.pdf`;
-        agentState.detailedConfig.knowledgeBase.push(fileName);
-        updateJSON();
+        if (!agentState.knowledge_base) agentState.knowledge_base = { files: [] };
+
+        agentState.knowledge_base.files.push({
+            name: fileName,
+            status: "pending_index"
+        });
+        updateJSONEditor();
 
         // Visual Feedback
         const p = knowledgeDropzone.querySelector('p');
-        p.textContent = `Added: ${fileName} (+${agentState.detailedConfig.knowledgeBase.length - 1} others)`;
+        p.textContent = `Added: ${fileName} (+${agentState.knowledge_base.files.length - 1} others)`;
         knowledgeDropzone.style.borderColor = 'var(--lime)';
         setTimeout(() => knowledgeDropzone.style.borderColor = '', 500);
     });
@@ -113,16 +273,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Update State
-        agentState.description = agentPrompt.value;
+        // Update Meta Name from Prompt
+        const name = agentPrompt.value.split(' ').slice(0, 2).join('_');
+        agentState.meta.name = name || "New_Agent";
+        agentNameInput.value = agentState.meta.name;
 
-        // Auto-generate a system prompt if empty
-        if (!agentState.systemPrompt) {
-            agentState.systemPrompt = `You are an AI agent described as: ${agentState.description}. Act accordingly.`;
-            systemPromptInput.value = agentState.systemPrompt;
+        // Auto-generate system prompt if empty
+        if (!agentState.neural_config.system_prompt) {
+            agentState.neural_config.system_prompt = `You are an AI agent described as: ${agentPrompt.value}. Act accordingly.`;
+            systemPromptInput.value = agentState.neural_config.system_prompt;
+            logicInput.value = agentState.neural_config.system_prompt;
         }
 
-        updateJSON();
+        updateJSONEditor();
 
         heroContainer.classList.add('warp-speed');
 
