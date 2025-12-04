@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentFlow | Build the Future</title>
+    <meta name="description" content="The funkiest way to build AI agents. No code required.">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div class="noise-overlay"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <nav>
+            <div class="logo">AGENTFLOW</div>
+            <div style="display: flex; gap: 2rem;">
+                <a href="#">Features</a>
+                <a href="#">Showcase</a>
+                <a href="#">Pricing</a>
+            </div>
+            <button class="btn btn-glass" style="padding: 0.5rem 1.5rem;">Login</button>
+        </nav>
+
+        <header class="hero">
+            <div class="hero-content">
+                <h1>Build AI Agents <br><span>Like a Rockstar.</span></h1>
+                <p>Unleash the power of autonomous agents with our funky, node-based builder. Drag, drop, and dominate
+                    the future.</p>
+                <div class="hero-btns">
+                    <button class="btn btn-primary" onclick="window.location.href='architect.html'">Start
+                        Building</button>
+                    <button class="btn btn-glass">Watch Demo</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="features">
+            <h2 class="section-title">Why It's Awesome</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>⚡ Lightning Fast</h3>
+                    <p>Deploy agents in seconds, not hours. Our optimized runtime ensures your agents are always ready
+                        to rock.</p>
+                </div>
+                <div class="card">
+                    <h3>🎨 Visual Editor</h3>
+                    <p>A node-based editor that looks as good as it feels. Connect the dots and watch the magic happen.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>🧠 Big Brain Energy</h3>
+                    <p>Powered by the latest LLMs. Give your agents the intelligence they deserve.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="unique-features">
+        <h2 class="section-title">Experience the Vibe</h2>
+
+        <!-- Feature 1: Brain Waves -->
+        <div class="feature-demo">
+            <div class="demo-text">
+                <h3>🧠 Brain Waves</h3>
+                <p>See your agent's thoughts in real-time. No more black boxes.</p>
+            </div>
+            <div class="canvas-container">
+                <canvas id="brainWaves"></canvas>
+            </div>
+        </div>
+
+        <!-- Feature 2: Vibe Engine -->
+        <div class="feature-demo reverse">
+            <div class="demo-text">
+                <h3>✨ Vibe Engine</h3>
+                <p>Give your agent a personality. Click to switch vibes.</p>
+                <div class="vibe-controls">
+                    <button class="btn btn-glass" onclick="setVibe('sassy')">💅 Sassy</button>
+                    <button class="btn btn-glass" onclick="setVibe('zen')">🧘 Zen</button>
+                    <button class="btn btn-glass" onclick="setVibe('chaos')">🔥 Chaos</button>
+                </div>
+            </div>
+            <div class="agent-avatar-container">
+                <div id="agentAvatar" class="agent-avatar aura-sassy">
+                    <div class="avatar-face">🤖</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 3: DJ Mode -->
+        <div class="feature-demo">
+            <div class="demo-text">
+                <h3>🎛️ DJ Mode</h3>
+                <p>Orchestrate your agent swarm like a pro DJ.</p>
+            </div>
+            <div class="dj-deck">
+                <div class="fader-group">
+                    <label>Creativity</label>
+                    <input type="range" min="0" max="100" value="70" class="fader">
+                </div>
+                <div class="fader-group">
+                    <label>Speed</label>
+                    <input type="range" min="0" max="100" value="90" class="fader">
+                </div>
+                <div class="fader-group">
+                    <label>Chaos</label>
+                    <input type="range" min="0" max="100" value="20" class="fader">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 AgentFlow. Stay Funky.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

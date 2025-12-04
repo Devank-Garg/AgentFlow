@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Architect | Forge Your Intelligence</title>
+    <link rel="stylesheet" href="architect.css">
+</head>
+
+<body>
+    <div class="noise-overlay"></div>
+
+    <!-- Back Button -->
+    <button class="btn-back" id="backBtn">← HOME</button>
+
+    <div class="architect-container" id="heroContainer">
+        <div class="architect-hero">
+            <h1 class="hero-title">INITIALIZE AGENT</h1>
+            <div class="input-wrapper">
+                <textarea class="agent-input" id="agentPrompt"
+                    placeholder="Describe your agent... e.g., 'A sassy sous-chef who uses Gordon Ramsay's style but specializes in vegan tacos.'"></textarea>
+            </div>
+            <button class="btn-forge" id="forgeBtn">FORGE AGENT</button>
+        </div>
+    </div>
+
+    <!-- Split View Panel -->
+    <div class="split-view" id="splitView">
+        <!-- Left: Configuration -->
+        <div class="panel-config">
+            <div class="config-header">System Configuration</div>
+
+            <div class="control-group">
+                <label class="control-label">NEURAL ENGINE</label>
+                <select class="model-select" id="modelSelect">
+                    <option value="gpt4o">GPT-4o (Omni)</option>
+                    <option value="claude35">Claude 3.5 Sonnet</option>
+                    <option value="llama3">Llama 3 (70B)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">SYSTEM PROMPT</label>
+                <textarea class="system-prompt-input" id="systemPromptInput"
+                    placeholder="You are a helpful assistant..."></textarea>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">CORTEX MODULES</label>
+
+                <div class="toggle-switch active" data-tool="web_search">
+                    <span>Web Search</span>
+                    <div class="toggle-indicator"></div>
+                </div>
+
+                <div class="toggle-switch" data-tool="file_access">
+                    <span>File Access</span>
+                    <div class="toggle-indicator"></div>
+                </div>
+
+                <div class="toggle-switch" data-tool="slack_integration">
+                    <span>Slack Integration</span>
+                    <div class="toggle-indicator"></div>
+                </div>
+            </div>
+
+            <div class="control-group" style="flex: 1; min-height: 0;">
+                <label class="control-label">LIVE CONFIGURATION</label>
+                <pre class="json-preview" id="configJson"></pre>
+            </div>
+        </div>
+
+        <!-- Right: Detailed Modification -->
+        <div class="panel-sim">
+            <div class="config-header">Agent Logic & Parameters</div>
+
+            <div class="control-group" style="flex: 2;">
+                <label class="control-label">CORE INSTRUCTIONS</label>
+                <textarea class="logic-input" id="logicInput"
+                    placeholder="Define detailed behavioral rules, edge cases, and response patterns..."></textarea>
+            </div>
+
+            <div class="params-grid">
+                <div class="control-group">
+                    <label class="control-label">CREATIVITY (TEMP)</label>
+                    <input type="range" class="param-slider" id="tempSlider" min="0" max="1" step="0.1" value="0.7">
+                    <div class="param-value" id="tempValue">0.7</div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">MAX TOKENS</label>
+                    <input type="range" class="param-slider" id="tokensSlider" min="256" max="4096" step="256"
+                        value="2048">
+                    <div class="param-value" id="tokensValue">2048</div>
+                </div>
+            </div>
+
+            <div class="control-group" style="flex: 1;">
+                <label class="control-label">KNOWLEDGE BASE</label>
+                <div class="knowledge-dropzone" id="knowledgeDropzone">
+                    <div class="drop-icon">📂</div>
+                    <p>Drag & Drop documents here to train your agent</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="architect.js"></script>
+</body>
+
+</html>
