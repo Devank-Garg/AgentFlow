@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tools: {
             web_search: true,
             file_access: false,
-            slack_integration: false
+
         },
         detailedConfig: {
             coreInstructions: "",
