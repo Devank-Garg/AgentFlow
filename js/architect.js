@@ -357,20 +357,51 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const parsed = JSON.parse(jsonContent);
             if (parsed.meta && parsed.meta.name) {
-                fileName = `${parsed.meta.name}.json`;
+                // Sanitize filename: replace non-alphanumeric with underscore, lowercase
+                fileName = `${parsed.meta.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
             }
         } catch (e) {
             // If invalid JSON, fallback to state name or default
-            fileName = `${agentState.meta?.name || "agent"}.json`;
+            const safeName = (agentState.meta?.name || "agent").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            fileName = `${safeName}.json`;
         }
 
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonContent);
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", fileName);
-        document.body.appendChild(downloadAnchorNode); // required for firefox
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        // Try using File constructor which supports name property
+        try {
+            const file = new File([jsonContent], fileName, { type: 'application/json' });
+            const url = URL.createObjectURL(file);
+
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.style.display = 'none';
+            downloadAnchorNode.setAttribute("href", url);
+            downloadAnchorNode.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchorNode);
+
+            downloadAnchorNode.click();
+
+            setTimeout(() => {
+                document.body.removeChild(downloadAnchorNode);
+                URL.revokeObjectURL(url);
+            }, 100);
+        } catch (e) {
+            // Fallback for browsers that don't support File constructor
+            console.warn("File constructor failed, falling back to Blob", e);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.style.display = 'none';
+            downloadAnchorNode.setAttribute("href", url);
+            downloadAnchorNode.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchorNode);
+
+            downloadAnchorNode.click();
+
+            setTimeout(() => {
+                document.body.removeChild(downloadAnchorNode);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
     });
 
     // Import
@@ -403,6 +434,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset input so same file can be selected again
         importFile.value = '';
     });
+
+    // Forge Agent Button - Show Split View
+    const forgeBtn = document.getElementById('forgeBtn');
+    if (forgeBtn) {
+        forgeBtn.addEventListener('click', () => {
+            splitView.classList.add('active');
+            splitView.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
 
     // Load on init
     loadState();
