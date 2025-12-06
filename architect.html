@@ -29,6 +29,11 @@
     <div class="split-view" id="splitView">
         <!-- Left: Configuration -->
         <div class="panel-config">
+            <div class="control-group" style="flex-direction: row; gap: 1rem; margin-bottom: 1rem;">
+                <button id="exportBtn" class="btn-action">EXPORT JSON</button>
+                <button id="importBtn" class="btn-action">IMPORT JSON</button>
+                <input type="file" id="importFile" style="display: none;" accept=".json">
+            </div>
             <div class="config-header">System Configuration</div>
 
             <div class="control-group">
@@ -68,7 +73,11 @@
             </div>
 
             <div class="control-group" style="flex: 1; min-height: 200px; display: flex; flex-direction: column;">
-                <label class="control-label">LIVE CONFIGURATION (EDITABLE)</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label class="control-label" style="margin-bottom: 0;">LIVE CONFIGURATION (EDITABLE)</label>
+                    <button id="resetBtn"
+                        style="background: rgba(255,0,0,0.2); border: 1px solid var(--pink); color: var(--pink); cursor: pointer; padding: 2px 8px; border-radius: 4px; font-family: var(--font-code); font-size: 0.7rem;">RESET</button>
+                </div>
                 <textarea class="json-editor" id="configJsonEditor" spellcheck="false"></textarea>
             </div>
         </div>
@@ -100,9 +109,10 @@
             <div class="control-group" style="flex: 1;">
                 <label class="control-label">KNOWLEDGE BASE</label>
                 <div class="knowledge-dropzone" id="knowledgeDropzone">
-                    <div class="drop-icon">📂</div>
-                    <p>Drag & Drop documents here to train your agent</p>
+                    <p style="text-align: center;">Drag & Drop files to index<br><span
+                            style="font-size: 0.8rem; color: var(--pink);">(.txt, .pdf, .md)</span></p>
                 </div>
+                <div id="fileList" class="file-list"></div>
             </div>
         </div>
     </div>

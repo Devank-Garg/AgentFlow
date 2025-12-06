@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('backBtn');
-    const forgeBtn = document.getElementById('forgeBtn');
-    const heroContainer = document.getElementById('heroContainer');
     const splitView = document.getElementById('splitView');
-    const agentPrompt = document.getElementById('agentPrompt');
 
     // Config Elements
     const agentNameInput = document.getElementById('agentNameInput');
@@ -11,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modelSelect = document.getElementById('modelSelect');
     const systemPromptInput = document.getElementById('systemPromptInput');
     const configJsonEditor = document.getElementById('configJsonEditor'); // Changed from configJson
+    const resetBtn = document.getElementById('resetBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
     const toggleSwitches = document.querySelectorAll('.toggle-switch');
 
     // Detailed Modification Elements
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tokensSlider = document.getElementById('tokensSlider');
     const tokensValue = document.getElementById('tokensValue');
     const knowledgeDropzone = document.getElementById('knowledgeDropzone');
+    const fileList = document.getElementById('fileList');
 
     // Generate UUID v4
     function uuidv4() {
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (configJsonEditor.value !== jsonString) {
             configJsonEditor.value = jsonString;
         }
+        saveState();
     }
 
     // 2. Update UI from State
@@ -136,6 +139,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Knowledge Base (Visual feedback only, as we can't repopulate file inputs)
         // We could list files if we had a list UI, but currently it's just a dropzone.
+        updateFileList();
+    }
+
+    function updateFileList() {
+        fileList.innerHTML = '';
+        if (agentState.knowledge_base && agentState.knowledge_base.files) {
+            agentState.knowledge_base.files.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span>${file.name}</span>
+                    <span class="file-remove" data-index="${index}">×</span>
+                `;
+                fileList.appendChild(item);
+            });
+
+            // Add remove listeners
+            document.querySelectorAll('.file-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    agentState.knowledge_base.files.splice(idx, 1);
+                    updateJSONEditor();
+                    updateUI();
+                    saveState();
+                });
+            });
+        }
     }
 
     // 3. Handle JSON Editor Input
@@ -144,11 +174,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const newState = JSON.parse(configJsonEditor.value);
             agentState = newState; // Update internal state
             updateUI(); // Sync UI controls to match new JSON
+            saveState();
             configJsonEditor.classList.remove('error');
         } catch (e) {
             // Invalid JSON
             configJsonEditor.classList.add('error');
             // Do not update state or UI until valid
+        }
+    });
+
+    // Tab Support
+    configJsonEditor.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + "  " + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 2;
+        }
+    });
+
+    // Auto-format on blur
+    configJsonEditor.addEventListener('blur', function () {
+        try {
+            const json = JSON.parse(this.value);
+            this.value = JSON.stringify(json, null, 2);
+            this.classList.remove('error');
+        } catch (e) {
+            // Keep error state
         }
     });
 
@@ -260,38 +313,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Visual Feedback
         const p = knowledgeDropzone.querySelector('p');
-        p.textContent = `Added: ${fileName} (+${agentState.knowledge_base.files.length - 1} others)`;
+        // p.textContent = `Added: ${fileName} (+${agentState.knowledge_base.files.length - 1} others)`;
         knowledgeDropzone.style.borderColor = 'var(--lime)';
         setTimeout(() => knowledgeDropzone.style.borderColor = '', 500);
+        updateUI();
+        saveState();
     });
 
-    // Forge Animation
-    forgeBtn.addEventListener('click', () => {
-        if (!agentPrompt.value.trim()) {
-            agentPrompt.style.borderColor = 'red';
-            setTimeout(() => agentPrompt.style.borderColor = '', 500);
-            return;
+    // --- Persistence ---
+    function saveState() {
+        localStorage.setItem('agentFlowState', JSON.stringify(agentState));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('agentFlowState');
+        if (saved) {
+            try {
+                agentState = JSON.parse(saved);
+                updateJSONEditor();
+                updateUI();
+            } catch (e) {
+                console.error("Failed to load state", e);
+            }
         }
+        // Always show split view
+        splitView.classList.add('active');
+    }
 
-        // Update Meta Name from Prompt
-        const name = agentPrompt.value.split(' ').slice(0, 2).join('_');
-        agentState.meta.name = name || "New_Agent";
-        agentNameInput.value = agentState.meta.name;
-
-        // Auto-generate system prompt if empty
-        if (!agentState.neural_config.system_prompt) {
-            agentState.neural_config.system_prompt = `You are an AI agent described as: ${agentPrompt.value}. Act accordingly.`;
-            systemPromptInput.value = agentState.neural_config.system_prompt;
-            logicInput.value = agentState.neural_config.system_prompt;
+    // Reset
+    resetBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset the agent configuration? This cannot be undone.')) {
+            localStorage.removeItem('agentFlowState');
+            location.reload();
         }
-
-        updateJSONEditor();
-
-        heroContainer.classList.add('warp-speed');
-
-        setTimeout(() => {
-            heroContainer.style.display = 'none';
-            splitView.classList.add('active');
-        }, 800);
     });
+
+    // Export
+    exportBtn.addEventListener('click', () => {
+        // Use the current value from the editor to ensure we get exactly what the user sees
+        const jsonContent = configJsonEditor.value;
+
+        let fileName = "agent.json";
+        try {
+            const parsed = JSON.parse(jsonContent);
+            if (parsed.meta && parsed.meta.name) {
+                fileName = `${parsed.meta.name}.json`;
+            }
+        } catch (e) {
+            // If invalid JSON, fallback to state name or default
+            fileName = `${agentState.meta?.name || "agent"}.json`;
+        }
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonContent);
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", fileName);
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    });
+
+    // Import
+    importBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const json = JSON.parse(e.target.result);
+                // Basic validation?
+                if (json.agent_id && json.meta) {
+                    agentState = json;
+                    updateJSONEditor();
+                    updateUI();
+                    saveState(); // Save imported state
+                } else {
+                    alert("Invalid AgentFlow JSON file.");
+                }
+            } catch (err) {
+                alert("Error parsing JSON file.");
+            }
+        };
+        reader.readAsText(file);
+        // Reset input so same file can be selected again
+        importFile.value = '';
+    });
+
+    // Load on init
+    loadState();
 });

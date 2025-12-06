@@ -162,6 +162,7 @@ body {
     pointer-events: none;
     transform: scale(0.95);
     transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
 }
 
 .split-view.active {
@@ -401,8 +402,6 @@ body {
     color: var(--pink);
 }
 
-}
-
 .text-input {
     background: rgba(255, 255, 255, 0.03);
     border: var(--glass-border);
@@ -468,4 +467,59 @@ body {
 
 .json-editor::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+/* Action Buttons */
+.btn-action {
+    background: rgba(255, 255, 255, 0.05);
+    border: var(--glass-border);
+    color: var(--text-muted);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    flex: 1;
+    text-align: center;
+}
+
+.btn-action:hover {
+    border-color: var(--lime);
+    color: var(--lime);
+    box-shadow: var(--glow-lime);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* File List */
+.file-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: var(--glass-border);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.file-remove {
+    color: var(--pink);
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 0.5rem;
+}
+
+.file-remove:hover {
+    color: white;
 }

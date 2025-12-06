@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | AgentFlow</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div class="noise-overlay"></div>
+    <div class="blob blob-1" style="top: -10%; left: -10%;"></div>
+    <div class="blob blob-2" style="bottom: -10%; right: -10%;"></div>
+
+    <a href="index.html" class="back-link">
+        <span>←</span> Back to Home
+    </a>
+
+    <div class="login-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2 id="formTitle">Welcome Back</h2>
+                <p id="formSubtitle">Enter your credentials to access the flow.</p>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchTab('signup')">Sign Up</div>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-input" placeholder="agent@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary auth-btn">Login</button>
+            </form>
+
+            <form id="signupForm" class="hidden">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-input" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-input" placeholder="agent@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary auth-btn">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Forgot your password? <a href="#">Reset it here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const formTitle = document.getElementById('formTitle');
+            const formSubtitle = document.getElementById('formSubtitle');
+            const tabs = document.querySelectorAll('.auth-tab');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                formTitle.textContent = 'Welcome Back';
+                formSubtitle.textContent = 'Enter your credentials to access the flow.';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                formTitle.textContent = 'Join the Squad';
+                formSubtitle.textContent = 'Start building your agent army today.';
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+            }
+        }
+    </script>
+</body>
+
+</html>
