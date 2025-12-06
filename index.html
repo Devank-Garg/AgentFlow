@@ -23,7 +23,7 @@
                 <a href="#">Showcase</a>
                 <a href="#">Pricing</a>
             </div>
-            <a href="login.html" class="btn btn-glass" style="padding: 0.5rem 1.5rem;">Login</a>
+            <a href="login.html" id="authBtn" class="btn btn-glass" style="padding: 0.5rem 1.5rem;">Login</a>
         </nav>
 
         <header class="hero">
@@ -32,7 +32,7 @@
                 <p>Unleash the power of autonomous agents with our funky, node-based builder. Drag, drop, and dominate
                     the future.</p>
                 <div class="hero-btns">
-                    <button class="btn btn-primary" onclick="window.location.href='architect.html'">Start
+                    <button class="btn btn-primary" onclick="checkAuth()">Start
                         Building</button>
                     <button class="btn btn-glass">Watch Demo</button>
                 </div>
@@ -120,6 +120,43 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('agentFlowToken');
+            if (token) {
+                window.location.href = 'architect.html';
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function updateAuthUI() {
+            const token = localStorage.getItem('agentFlowToken');
+            const authBtn = document.getElementById('authBtn');
+
+            if (token) {
+                authBtn.textContent = 'Logout';
+                authBtn.href = '#';
+                authBtn.onclick = (e) => {
+                    e.preventDefault();
+                    logout();
+                };
+            } else {
+                authBtn.textContent = 'Login';
+                authBtn.href = 'login.html';
+                authBtn.onclick = null;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('agentFlowToken');
+            localStorage.removeItem('agentFlowUser');
+            window.location.reload();
+        }
+
+        // Run on load
+        updateAuthUI();
+    </script>
 </body>
 
 </html>
