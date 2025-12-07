@@ -21,7 +21,7 @@
                 <textarea class="agent-input" id="agentPrompt"
                     placeholder="Describe your agent... e.g., 'A sassy sous-chef who uses Gordon Ramsay's style but specializes in vegan tacos.'"></textarea>
             </div>
-            <button class="btn-forge" id="forgeBtn">FORGE AGENT</button>
+            <button class="btn-forge" id="forgeBtn" type="button">FORGE AGENT</button>
         </div>
     </div>
 
@@ -32,6 +32,8 @@
             <div class="control-group" style="flex-direction: row; gap: 1rem; margin-bottom: 1rem;">
                 <button id="exportBtn" class="btn-action">EXPORT JSON</button>
                 <button id="importBtn" class="btn-action">IMPORT JSON</button>
+                <button id="saveConfigBtn" class="btn-action"
+                    style="border-color: var(--lime); color: var(--lime);">PROCESS CONFIG</button>
                 <input type="file" id="importFile" style="display: none;" accept=".json">
             </div>
             <div class="config-header">System Configuration</div>
@@ -90,6 +92,11 @@
                 <label class="control-label">CORE INSTRUCTIONS</label>
                 <textarea class="logic-input" id="logicInput"
                     placeholder="Define detailed behavioral rules, edge cases, and response patterns..."></textarea>
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <button id="processBtn" class="btn-action"
+                        style="width: auto; padding: 0.5rem 1.5rem; border-color: var(--lime); color: var(--lime);">PROCESS
+                        WITH AI</button>
+                </div>
             </div>
 
             <div class="params-grid">

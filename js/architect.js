@@ -336,8 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Failed to load state", e);
             }
         }
-        // Always show split view
-        splitView.classList.add('active');
+        // Do not auto-show split view, let user click Forge
     }
 
     // Reset
@@ -435,12 +434,134 @@ document.addEventListener('DOMContentLoaded', () => {
         importFile.value = '';
     });
 
-    // Forge Agent Button - Show Split View
+    // Process Config (Save to Backend)
+    const saveConfigBtn = document.getElementById('saveConfigBtn');
+    if (saveConfigBtn) {
+        saveConfigBtn.addEventListener('click', async () => {
+            alert("Processing started...");
+
+            try {
+                const response = await fetch('http://localhost:5000/save_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(agentState)
+                });
+
+                if (response.ok) {
+                    console.log("Config saved to backend.");
+                } else {
+                    console.error("Failed to save config");
+                }
+            } catch (e) {
+                console.error("Error saving config:", e);
+            }
+        });
+    }
+
+    // Forge Agent Button - Show Split View & Generate
     const forgeBtn = document.getElementById('forgeBtn');
-    if (forgeBtn) {
-        forgeBtn.addEventListener('click', () => {
-            splitView.classList.add('active');
-            splitView.scrollIntoView({ behavior: 'smooth' });
+    const agentPrompt = document.getElementById('agentPrompt');
+
+    if (forgeBtn && agentPrompt) {
+        forgeBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const prompt = agentPrompt.value.trim();
+
+            if (prompt) {
+                // LLM Generation Mode
+                const originalText = forgeBtn.textContent;
+                forgeBtn.textContent = "Forging Intelligence...";
+                forgeBtn.disabled = true;
+                forgeBtn.style.cursor = "wait";
+
+                try {
+                    const response = await fetch('http://localhost:5000/generate_agent', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ prompt: prompt })
+                    });
+
+                    const data = await response.json();
+                    console.log(data);
+                    if (response.ok) {
+                        // Merge generated data into current state
+                        if (data.meta) agentState.meta = { ...agentState.meta, ...data.meta };
+                        if (data.neural_config) agentState.neural_config = { ...agentState.neural_config, ...data.neural_config };
+                        if (data.skills) agentState.skills = data.skills; // Replace skills logic if needed, or merge
+
+                        // Update UI
+                        updateJSONEditor();
+                        updateUI();
+                        saveState();
+
+                        // Visual feedback handled by UI update, proceed to view
+                    } else {
+                        alert("Forge failed: " + (data.error || "Unknown error"));
+                    }
+                } catch (e) {
+                    console.error("Generation error:", e);
+                    alert("Could not connect to the Forge. Check backend.");
+                } finally {
+                    forgeBtn.textContent = originalText;
+                    forgeBtn.disabled = false;
+                    forgeBtn.style.cursor = "pointer";
+                }
+            }
+
+            // Always show view eventually (or maybe only on success? prioritizing user flow)
+            // If they typed nothing, just go there. If they typed something and it failed, maybe stay?
+            // Let's go there on success or empty.
+
+            if (!prompt || !forgeBtn.disabled) { // If disabled, we are waiting.
+                splitView.classList.add('active');
+                splitView.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Process Agent Logic Button
+    const processBtn = document.getElementById('processBtn');
+    if (processBtn) {
+        processBtn.addEventListener('click', async () => {
+            const prompt = logicInput.value.trim();
+            if (!prompt) return;
+
+            const originalText = processBtn.textContent;
+            processBtn.textContent = "PROCESSING...";
+            processBtn.disabled = true;
+            processBtn.style.cursor = "wait";
+
+            try {
+                const response = await fetch('http://localhost:5000/generate_agent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+                console.log(data);
+                if (response.ok) {
+                    // Update state
+                    if (data.meta) agentState.meta = { ...agentState.meta, ...data.meta };
+                    if (data.neural_config) agentState.neural_config = { ...agentState.neural_config, ...data.neural_config };
+                    if (data.skills) agentState.skills = data.skills;
+
+                    updateJSONEditor();
+                    updateUI();
+                    saveState();
+                } else {
+                    alert("Processing failed: " + (data.error || "Unknown error"));
+                }
+            } catch (e) {
+                console.error("Processing error:", e);
+                alert("Could not connect to AI service.");
+            } finally {
+                processBtn.textContent = originalText;
+                processBtn.disabled = false;
+                processBtn.style.cursor = "pointer";
+            }
         });
     }
 
